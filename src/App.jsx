@@ -585,6 +585,7 @@ export default function App() {
         editing={editingRecord}
         catalog={catalog}
         latestManufacturerByCustomer={latestManufacturerByCustomer}
+        customerRankMap={customerRevenueRank}
       />
       <ShipmentModal
         open={modal === "shipment"}
@@ -592,6 +593,7 @@ export default function App() {
         editing={editingRecord}
         catalog={catalog}
         latestManufacturerByCustomer={latestManufacturerByCustomer}
+        customerRankMap={customerRevenueRank}
       />
       <MaterialOrderModal
         open={modal === "material"}
@@ -599,8 +601,15 @@ export default function App() {
         editing={editingRecord}
         catalog={catalog}
         latestManufacturerByCustomer={latestManufacturerByCustomer}
+        customerRankMap={customerRevenueRank}
       />
-      <PriceHistoryModal open={modal === "price"} onClose={closeModal} editing={editingRecord} catalog={catalog} />
+      <PriceHistoryModal
+        open={modal === "price"}
+        onClose={closeModal}
+        editing={editingRecord}
+        catalog={catalog}
+        customerRankMap={customerRevenueRank}
+      />
       <TradeConditionModal open={modal === "trade_condition"} onClose={closeModal} editing={editingRecord} catalog={catalog} />
       <StockEditModal open={modal === "stock"} onClose={closeModal} products={dashboardRows} initial={editingRecord} />
 
