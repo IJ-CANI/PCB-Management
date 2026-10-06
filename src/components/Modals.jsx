@@ -26,11 +26,22 @@ import {
    ========================================================================= */
 
 
-function useCatalogOptions(catalog, customer, manufacturer, productType) {
-  const customerOptions = useMemo(
-    () => Array.from(new Set(catalog.map((c) => c.customer))).sort((a, b) => a.localeCompare(b, "ko")),
-    [catalog]
-  );
+function useCatalogOptions(catalog, customer, manufacturer, productType, customerRankMap) {
+  const customerOptions = useMemo(() => {
+    const names = Array.from(new Set(catalog.map((c) => c.customer)));
+    return names.sort((a, b) => {
+      const ra = customerRankMap?.get(a);
+      const rb = customerRankMap?.get(b);
+      const hasA = ra !== undefined;
+      const hasB = rb !== undefined;
+      // 매출(KRW 환산 총 판매가) 내림차순 — 랭크 숫자가 작을수록 매출이 높은 고객사입니다.
+      // 매출 기록이 없는(랭크가 없는) 신규 고객사는 랭크가 있는 고객사들 뒤에, 가나다순으로 배치합니다.
+      if (hasA && hasB) return ra - rb;
+      if (hasA && !hasB) return -1;
+      if (!hasA && hasB) return 1;
+      return a.localeCompare(b, "ko");
+    });
+  }, [catalog, customerRankMap]);
   const manufacturerOptions = useMemo(
     () =>
       Array.from(new Set(catalog.filter((c) => c.customer === customer && c.manufacturer).map((c) => c.manufacturer))).sort(
@@ -60,7 +71,7 @@ function useCatalogOptions(catalog, customer, manufacturer, productType) {
 /* =========================================================================
    ① 수주 입력 / 수정 모달
    ========================================================================= */
-export function SalesOrderModal({ open, onClose, editing, catalog, latestManufacturerByCustomer }) {
+export function SalesOrderModal({ open, onClose, editing, catalog, latestManufacturerByCustomer, customerRankMap }) {
   const emptyForm = {
     product_type: "mp",
     model_name: "",
@@ -96,7 +107,8 @@ export function SalesOrderModal({ open, onClose, editing, catalog, latestManufac
     catalog,
     form.customer,
     form.manufacturer,
-    form.product_type
+    form.product_type,
+    customerRankMap
   );
 
   const submit = async () => {
@@ -207,7 +219,7 @@ export function SalesOrderModal({ open, onClose, editing, catalog, latestManufac
 /* =========================================================================
    ② 출고 입력 / 수정 모달 (매입가/판매가 자동완성 포함)
    ========================================================================= */
-export function ShipmentModal({ open, onClose, editing, catalog, latestManufacturerByCustomer }) {
+export function ShipmentModal({ open, onClose, editing, catalog, latestManufacturerByCustomer, customerRankMap }) {
   const emptyForm = {
     product_type: "mp",
     model_name: "",
@@ -251,7 +263,8 @@ export function ShipmentModal({ open, onClose, editing, catalog, latestManufactu
     catalog,
     form.customer,
     form.manufacturer,
-    form.product_type
+    form.product_type,
+    customerRankMap
   );
 
   // 신규 등록 시에만: 모델명이 정해지면 최근 매입가/판매가를 자동으로 불러옴 (수정은 자유롭게 가능)
@@ -413,7 +426,7 @@ export function ShipmentModal({ open, onClose, editing, catalog, latestManufactu
 /* =========================================================================
    ③ 원자재 발주 입력 / 수정 모달
    ========================================================================= */
-export function MaterialOrderModal({ open, onClose, editing, catalog, latestManufacturerByCustomer }) {
+export function MaterialOrderModal({ open, onClose, editing, catalog, latestManufacturerByCustomer, customerRankMap }) {
   const emptyForm = {
     product_type: "mp",
     model_name: "",
@@ -451,7 +464,8 @@ export function MaterialOrderModal({ open, onClose, editing, catalog, latestManu
     catalog,
     form.customer,
     form.manufacturer,
-    form.product_type
+    form.product_type,
+    customerRankMap
   );
 
   // 신규 등록 시에만: 모델명이 정해지면 가장 최근 원자재 Maker를 자동으로 불러옴
@@ -676,7 +690,7 @@ export function StockEditModal({ open, onClose, products, initial }) {
 /* =========================================================================
    ⑤ 단가 이력 추가 / 수정 모달 (수동 입력)
    ========================================================================= */
-export function PriceHistoryModal({ open, onClose, editing, catalog }) {
+export function PriceHistoryModal({ open, onClose, editing, catalog, customerRankMap }) {
   const emptyForm = {
     product_type: "mp",
     model_name: "",
@@ -720,7 +734,8 @@ export function PriceHistoryModal({ open, onClose, editing, catalog }) {
     catalog,
     form.customer,
     form.manufacturer,
-    form.product_type
+    form.product_type,
+    customerRankMap
   );
 
   const submit = async () => {
